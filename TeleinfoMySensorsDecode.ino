@@ -188,6 +188,7 @@ char in;
   
   if (Serial.available()>0) {
     in = (char)Serial.read() & 127;
+    Serial.print(in);
     if (in == 0x0A) bufflen=0;
   
     buffin[bufflen] = in;
@@ -197,16 +198,24 @@ char in;
     
     if (in == 0x0D && bufflen > 5)   { // fin trame ------
       //change_etat_led_teleinfo();
-      // Serial.println(buffin);
+      Serial.println(buffin);
       if (ckecksum(buffin,bufflen-1) == buffin[bufflen-2]) { // Test du checksum
         traitement_trame(buffin);
       }
+//    else {
+//        strncpy(teleinfo.DEBUG, &buffin[1], 30);
+//        teleinfo.DEBUG[30] = '\0';
+//    }
 //        digitalWrite(LED_SEND, LOW);
 //        delay(100);
 //        digitalWrite(LED_SEND, HIGH);
 //      //  Serial.print("CS KO! ");
 //      //  Serial.println(buffin);
 //      }
+    }
+    else if (bufflen > 5) {
+      strncpy(teleinfo.DEBUG, &buffin[1], 30);
+      teleinfo.DEBUG[30] = '\0';      
     }
   }
 }

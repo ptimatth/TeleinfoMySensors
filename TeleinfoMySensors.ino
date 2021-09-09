@@ -102,6 +102,7 @@ struct teleinfo_s {
   unsigned int ADPS=0;
   unsigned int IMAX=0;
   char HHPHC[2]="";
+  char DEBUG[31]="";
 };
 teleinfo_s teleinfo;
 
@@ -132,7 +133,7 @@ teleinfo_s teleinfo;
 #define CHILD_ID_ADPS      19
 #define CHILD_ID_IMAX      20
 #define CHILD_ID_HHPHC     21
-// #define CHILD_ID_DEBUG     22
+#define CHILD_ID_DEBUG     22
 
 
 
@@ -144,6 +145,7 @@ MyMessage msgVAR5_DEMAIN( 0, V_VAR5 );
 MyMessage msgCURRENT( 0, V_CURRENT );
 MyMessage msgWATT( 0, V_WATT );
 MyMessage msgKWH( 0, V_KWH );
+MyMessage msgDebug( 0, V_TEXT );
 
 //--------------------------------------------------------------------
 void setup()
@@ -204,6 +206,7 @@ void presentation()
   present( CHILD_ID_IMAX, S_MULTIMETER, "IMAX" );
   present( CHILD_ID_PAPP, S_POWER, "PAPP" );
   present( CHILD_ID_HHPHC, S_CUSTOM, "HHPHC" );
+  present( CHILD_ID_DEBUG, S_INFO, "DEBUG" );
 }
 
 //--------------------------------------------------------------------
@@ -272,6 +275,7 @@ boolean flag_hhphc = false;
   if (flag_hhphc == true) { // cas particulier, appartient a EJP et TEMPO
       send(msgVAR4_HHPHC.setSensor(CHILD_ID_HHPHC).set(teleinfo.HHPHC));
   }
+  send(msgDebug.setSensor(CHILD_ID_DEBUG).set(teleinfo.DEBUG));
 }
 
 //--------------------------------------------------------------------
