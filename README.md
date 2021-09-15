@@ -73,3 +73,25 @@ Exemple de trames teleinfo
     PAPP 00460 + (Puissance apparente : PAPP ( 5 car. unité = Volt.ampères))
     HHPHC E 0 (Groupe horaire si option = heures creuses ou tempo : HHPHC (1 car.))
     MOTDETAT 000000 B (Mot d'état (autocontrôle) : MOTDETAT (6 car.))
+
+
+## Usefull command
+
+Connect with picocom to gateway or sensor
+
+```sh
+ picocom -b 115200 -r -l /dev/ttyUSB0 --omap lfcrlf --imap lfcrlf --emap lfcrlf -g picocom.log
+ ```
+
+filter picocom log ouptut on device id 3 sensor 22 (My debug)
+```sh
+tail -f picocom.log | grep ^3\;22\;
+```
+
+set baudrate to a scecific value 
+```
+3;23;1;1;37;600 // -> thne conver to hex with https://www.rapidtables.com/convert/number/ascii-to-hex.html (don't miss line break)
+```
+
+to write hex in picocom : ctrl+a, ctrl+w
+to exit picocom : ctrl+a, ctrl+x
