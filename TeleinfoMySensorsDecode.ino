@@ -193,6 +193,11 @@ char in;
   
     buffin[bufflen] = in;
     bufflen++;
+     
+    if (bufflen > 5 and bufflen < 29) {
+      strncpy(teleinfo.DEBUG, &buffin[1], bufflen);
+      teleinfo.DEBUG[bufflen] = '\0';
+    }
 
     if (bufflen > 21) bufflen=0; 
     
@@ -212,10 +217,6 @@ char in;
 //      //  Serial.print("CS KO! ");
 //      //  Serial.println(buffin);
 //      }
-    }
-    else if (bufflen > 5) {
-      strncpy(teleinfo.DEBUG, &buffin[1], 30);
-      teleinfo.DEBUG[30] = '\0';      
     }
   }
 }

@@ -51,9 +51,9 @@
 // 2020/04/25 - FB V1.0.6 - ADCO bug fix
 //--------------------------------------------------------------------
 // Enable debug prints
-//#define MY_DEBUG
-
-//#define MY_NODE_ID 2
+#define MY_DEBUG
+#define MY_REPEATER_FEATURE
+#define MY_NODE_ID 2
 
 #define VERSION   "v1.0.6"
 
@@ -61,7 +61,7 @@
 // power your radio separately with a good regulator you can turn up PA level.
 //#define MY_RF24_PA_LEVEL RF24_PA_LOW
 
-#define MY_BAUD_RATE 1200
+#define MY_BAUD_RATE 600UL
 
 // Enable and select radio type attached
 #define MY_RADIO_RF24
@@ -103,8 +103,12 @@ struct teleinfo_s {
   unsigned int IMAX=0;
   char HHPHC[2]="";
   char DEBUG[31]="";
+  unsigned long BAUDRATE=(unsigned long) MY_BAUD_RATE;
+
 };
 teleinfo_s teleinfo;
+
+bool initialValueSent = false;
 
 
 //#define LED_SEND         4  
@@ -134,8 +138,7 @@ teleinfo_s teleinfo;
 #define CHILD_ID_IMAX      20
 #define CHILD_ID_HHPHC     21
 #define CHILD_ID_DEBUG     22
-
-
+#define CHILD_ID_BAUDRATE  23
 
 MyMessage msgVAR1_ADCO( 0, V_VAR1 );
 MyMessage msgVAR2_OPTARIF( 0, V_VAR2 );
@@ -146,7 +149,7 @@ MyMessage msgCURRENT( 0, V_CURRENT );
 MyMessage msgWATT( 0, V_WATT );
 MyMessage msgKWH( 0, V_KWH );
 MyMessage msgDebug( 0, V_TEXT );
-
+MyMessage msgBaudrate(0, V_LEVEL);
 //--------------------------------------------------------------------
 void setup()
 {
@@ -159,18 +162,21 @@ void setup()
   digitalWrite(LED_TELEINFO , HIGH);
   */
   
-  Serial.begin(1200);
+  Serial.begin(teleinfo.BAUDRATE);
  
   Serial.println(F("   __|              _/           _ )  |"));
   Serial.println(F("   _| |  |   ` \\    -_)   -_)    _ \\  |   -_)  |  |   -_)"));
   Serial.println(F("  _| \\_,_| _|_|_| \\___| \\___|   ___/ _| \\___| \\_,_| \\___|"));
   Serial.print(F("                                             "));
   Serial.println(VERSION);
+
+  request(CHILD_ID_BAUDRATE, V_LEVEL);
+
 /*
   digitalWrite(LED_SEND, LOW);
   delay(200);
   digitalWrite(LED_SEND , HIGH);
-  delay(200);
+  delay(200); 
   digitalWrite(LED_TELEINFO, LOW);
   delay(200);
   digitalWrite(LED_TELEINFO , HIGH);
@@ -207,12 +213,13 @@ void presentation()
   present( CHILD_ID_PAPP, S_POWER, "PAPP" );
   present( CHILD_ID_HHPHC, S_CUSTOM, "HHPHC" );
   present( CHILD_ID_DEBUG, S_INFO, "DEBUG" );
+  present( CHILD_ID_BAUDRATE, S_VIBRATION, "BAUDRATE" );
 }
 
 //--------------------------------------------------------------------
 void send_teleinfo()
 {
-boolean flag_hhphc = false;
+  boolean flag_hhphc = false;
 
   // ADCO
   send(msgVAR1_ADCO.setSensor(CHILD_ID_ADCO).set(teleinfo.ADCO));
@@ -276,11 +283,20 @@ boolean flag_hhphc = false;
       send(msgVAR4_HHPHC.setSensor(CHILD_ID_HHPHC).set(teleinfo.HHPHC));
   }
   send(msgDebug.setSensor(CHILD_ID_DEBUG).set(teleinfo.DEBUG));
+  send(msgBaudrate.setSensor(CHILD_ID_BAUDRATE).set(teleinfo.BAUDRATE));
 }
 
 //--------------------------------------------------------------------
 void loop()
 {
+  if (!initialValueSent) {
+    Serial.println("Sending initial value");
+    send(msgBaudrate.set(teleinfo.BAUDRATE));
+    Serial.println("Requesting initial value from controller");
+    request(CHILD_ID_BAUDRATE, V_LEVEL);
+    wait(2000, C_SET, V_LEVEL);
+  }
+  
   uint32_t currentTime = millis();
 
   // lecture teleinfo -------------------------
@@ -292,6 +308,24 @@ void loop()
     //change_etat_led_send();
     lastSend = currentTime;
   } 
-  
+}
 
+void receive(const MyMessage &message) {
+  if (message.isAck()) {
+     Serial.println("This is an ack from gateway");
+  }
+
+  if (message.type == V_LEVEL) {
+    if (!initialValueSent) {
+      Serial.println("Receiving initial value from controller");
+      initialValueSent = true;
+    }
+    // Change relay state
+    teleinfo.BAUDRATE = message.getULong();
+    Serial.print("Receiving new baudrate value from controller: ");
+    Serial.println(teleinfo.BAUDRATE);
+    Serial.flush();
+    Serial.begin(teleinfo.BAUDRATE);
+    send(msgBaudrate.setSensor(CHILD_ID_BAUDRATE).set(teleinfo.BAUDRATE));
+  }
 }
