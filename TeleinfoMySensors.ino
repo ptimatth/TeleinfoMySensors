@@ -53,7 +53,7 @@
 // Enable debug prints
 #define MY_DEBUG
 #define MY_REPEATER_FEATURE
-#define MY_NODE_ID 2
+#define MY_NODE_ID 3
 
 #define VERSION   "v1.0.6"
 
@@ -61,7 +61,7 @@
 // power your radio separately with a good regulator you can turn up PA level.
 //#define MY_RF24_PA_LEVEL RF24_PA_LOW
 
-#define MY_BAUD_RATE 600UL
+#define MY_BAUD_RATE 1200UL
 
 // Enable and select radio type attached
 #define MY_RADIO_RF24
@@ -75,7 +75,7 @@
 
 #include <MySensors.h>
 
-uint32_t SEND_FREQUENCY =    5000; // Minimum time between send (in milliseconds). We don't want to spam the gateway.
+uint32_t SEND_FREQUENCY =    2000; // Minimum time between send (in milliseconds). We don't want to spam the gateway.
 uint32_t lastSend = 0;
 
 // Variables Téléinfo---------------------
@@ -169,9 +169,7 @@ void setup()
   Serial.println(F("  _| \\_,_| _|_|_| \\___| \\___|   ___/ _| \\___| \\_,_| \\___|"));
   Serial.print(F("                                             "));
   Serial.println(VERSION);
-
-  request(CHILD_ID_BAUDRATE, V_LEVEL);
-
+  
 /*
   digitalWrite(LED_SEND, LOW);
   delay(200);
@@ -322,10 +320,7 @@ void receive(const MyMessage &message) {
     }
     // Change relay state
     teleinfo.BAUDRATE = message.getULong();
-    Serial.print("Receiving new baudrate value from controller: ");
-    Serial.println(teleinfo.BAUDRATE);
     Serial.flush();
-    Serial.begin(teleinfo.BAUDRATE);
     send(msgBaudrate.setSensor(CHILD_ID_BAUDRATE).set(teleinfo.BAUDRATE));
   }
 }

@@ -184,17 +184,16 @@ char sum = 0;
 // Lecture infos Teleinfo ------------------------------------------------------
 void read_teleinfo()
 {
-char in;
+  char in;
   
   if (Serial.available()>0) {
     in = (char)Serial.read() & 127;
-    Serial.print(in);
     if (in == 0x0A) bufflen=0;
   
     buffin[bufflen] = in;
     bufflen++;
      
-    if (bufflen > 5 and bufflen < 29) {
+    if (bufflen > 5 and bufflen < 31) {
       strncpy(teleinfo.DEBUG, &buffin[1], bufflen);
       teleinfo.DEBUG[bufflen] = '\0';
     }
@@ -203,7 +202,7 @@ char in;
     
     if (in == 0x0D && bufflen > 5)   { // fin trame ------
       //change_etat_led_teleinfo();
-      Serial.println(buffin);
+      // Serial.println(buffin);
       if (ckecksum(buffin,bufflen-1) == buffin[bufflen-2]) { // Test du checksum
         traitement_trame(buffin);
       }
